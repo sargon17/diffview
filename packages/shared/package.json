@@ -1,0 +1,15 @@
+{
+  "name": "@diffview/shared",
+  "version": "0.1.0",
+  "description": "Shared types and DTOs for Diffview",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "bun build src/index.ts --outdir dist --minify",
+    "dev": "bun run build --watch"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}
