@@ -1,0 +1,25 @@
+{
+  "name": "diffview",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "bun run --bun apps/cli/src/index.ts",
+    "build": "bun run build:web && bun run build:api && bun run build:cli",
+    "build:web": "bun --bun run -C apps/web build",
+    "build:api": "bun --bun run -C apps/api build",
+    "build:cli": "bun --bun run -C apps/cli build",
+    "start": "bun run --bun apps/cli/src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
