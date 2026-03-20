@@ -1,0 +1,21 @@
+{
+  "name": "diffview",
+  "version": "0.1.0",
+  "description": "CLI for Diffview",
+  "type": "module",
+  "bin": {
+    "diffview": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "bun build src/index.ts --outdir dist --minify --target=bun",
+    "dev": "bun run src/index.ts",
+    "start": "bun run dist/cli.js"
+  },
+  "dependencies": {
+    "@diffview/shared": "workspace:*",
+    "open": "^8.4.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}
