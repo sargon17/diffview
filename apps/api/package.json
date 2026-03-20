@@ -1,0 +1,17 @@
+{
+  "name": "@diffview/api",
+  "version": "0.1.0",
+  "description": "Backend API for Diffview",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "build": "bun build src/index.ts --outdir dist --minify",
+    "start": "bun run dist/index.js"
+  },
+  "dependencies": {
+    "@diffview/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}
