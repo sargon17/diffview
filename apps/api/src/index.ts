@@ -7,16 +7,30 @@ import handleSession from "./handlers/session";
 // Re-export types for CLI
 export type { SessionInfo, BranchRef, DiffMode, DiffFile };
 
+function corsHeaders() {
+  return {
+    "Access-Control-Allow-Origin": "http://localhost:5173",
+    "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+  };
+}
+
 // TODO: find a nicer way to handle the routes
 export async function handleApiRequest(req: Request): Promise<Response> {
   const url = new URL(req.url);
+  if (req.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: corsHeaders(),
+    });
+  }
   if (url.pathname === "/session" && req.method === "GET") {
     return handleSession();
   }
   if (url.pathname === "/refs" && req.method === "GET") {
     return handleRefs();
   }
-  if (url.pathname === "/diff" && req.method === "POST") {
+  if (url.pathname === "/diff") {
     return handleDiff(req);
   }
   return new Response("Not Found", { status: 404 });

@@ -1,8 +1,32 @@
 {
-  "hash": "ca2ce952",
+  "hash": "5995769a",
   "configHash": "f90a6ebc",
-  "lockfileHash": "ebaac783",
-  "browserHash": "52da27c6",
-  "optimized": {},
-  "chunks": {}
+  "lockfileHash": "14233eb5",
+  "browserHash": "7055d26d",
+  "optimized": {
+    "react-dom/client": {
+      "src": "../../../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "971f474b",
+      "needsInterop": true
+    },
+    "react": {
+      "src": "../../../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "204317d7",
+      "needsInterop": true
+    },
+    "react/jsx-dev-runtime": {
+      "src": "../../../../node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "a1d0b7d5",
+      "needsInterop": true
+    }
+  },
+  "chunks": {
+    "react-CpDv40Cb": {
+      "file": "react-CpDv40Cb.js",
+      "isDynamicEntry": false
+    }
+  }
 }

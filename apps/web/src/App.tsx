@@ -1,27 +1,67 @@
 import { useEffect, useState } from "react";
 
-import type { SessionInfo } from "@diffview/shared";
+import type { SessionInfo, DiffResult } from "@diffview/shared";
 
-const API_BASE = import.meta.env.DEV ? "http://localhost:3000" : "";
+import { fetchData } from "@utils/http"
+import Patch from "./components/Patch";
+
 
 function App() {
   const [session, setSession] = useState<SessionInfo | null>(null);
+  const [diff, setDiff] = useState<DiffResult | null>(null)
+  const [collapsed, setCollapsed] = useState<boolean>(false)
+
+    const loadSession = async () => {
+      try {
+        const data = await fetchData<SessionInfo>(`/session`);
+        setSession(data);
+      } catch {
+        console.error("error");
+      }
+    }
+
+    const loadDiff = async () => {
+      try {
+        const data = await fetchData<DiffResult>(`/diff`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            mode: "working",
+          }),
+        });
+
+        setDiff(data)
+
+
+      } catch {
+        console.error("error");
+      }
+    }
 
   useEffect(() => {
-    fetch(`${API_BASE}/session`)
-      .then((res) => res.json())
-      .then((data) => setSession(data));
-    // fetch("/refs");
-    // await fetch("/diff", {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify({ mode, base, head }),
-    // });
+
+    loadSession();
+    loadDiff();
   }, []);
 
+
+
   return (
-    <div className="w-full h-full flex justify-center items-center">
-      <pre>{session?.repo.path || ""}</pre>
+    <div className="w-full h-full min-h-screen flex flex-col justify-center items-center dark:bg-neutral-900 dark:text-neutral-100">
+      <p>
+        {session?.currentBranch}
+      </p>
+      <div className="w-full"
+            onClick={()=> setCollapsed(!collapsed)}
+      >
+      {diff?.files.map((file) => {
+        return (
+          <Patch patch={file.patch!} file={file.path} />
+        )
+      })}
+      </div>
     </div>
   );
 }
