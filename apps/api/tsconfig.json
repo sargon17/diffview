@@ -9,8 +9,9 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@diffview/shared": ["../packages/shared/src"]
-    }
+      "@/*": ["./*"],
+      "@utils/*": ["./utils/*"],
+    },
   },
-  "include": ["src"]
+  "include": ["src"],
 }
