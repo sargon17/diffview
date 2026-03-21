@@ -7,7 +7,7 @@
     "diffview": "./dist/cli.js"
   },
   "scripts": {
-    "build": "bun build src/index.ts --outdir dist --minify --target=bun",
+    "build": "bun run scripts/build.ts",
     "dev": "bun run src/index.ts",
     "start": "bun run dist/cli.js"
   },

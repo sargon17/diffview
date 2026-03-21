@@ -1,8 +1,7 @@
-import { Server } from 'bun';
-import { SessionInfo, BranchRef, DiffMode, DiffFile } from '@diffview/shared';
+import { SessionInfo, BranchRef, DiffMode, DiffFile } from '../../../packages/shared/src/index.ts';
 
 // Re-export types for CLI
-export { SessionInfo, BranchRef, DiffMode, DiffFile };
+export type { SessionInfo, BranchRef, DiffMode, DiffFile };
 
 // --- Git command utilities ---
 
@@ -12,8 +11,8 @@ async function execGit(args: string[]): Promise<string> {
     stdout: 'pipe',
     stderr: 'pipe'
   });
-  const stdout = await proc.stdout?.text();
-  const stderr = await proc.stderr?.text();
+  const stdout = proc.stdout ? await new Response(proc.stdout).text() : '';
+  const stderr = proc.stderr ? await new Response(proc.stderr).text() : '';
   const exitCode = await proc.exited;
 
   if (exitCode !== 0) {
@@ -194,29 +193,31 @@ async function handleDiff(request: Request): Promise<Response> {
   }
 }
 
+export async function handleApiRequest(req: Request): Promise<Response> {
+  const url = new URL(req.url);
+  if (url.pathname === '/session' && req.method === 'GET') {
+    return handleSession();
+  }
+  if (url.pathname === '/refs' && req.method === 'GET') {
+    return handleRefs();
+  }
+  if (url.pathname === '/diff' && req.method === 'POST') {
+    return handleDiff(req);
+  }
+  return new Response('Not Found', { status: 404 });
+}
+
 // --- Server factory ---
 
-export function createServer(port = 3000): Server {
-  return new Server({
+export function createServer(port = 3000) {
+  return Bun.serve({
     port,
-    fetch: async (req: Request) => {
-      const url = new URL(req.url);
-      if (url.pathname === '/session' && req.method === 'GET') {
-        return handleSession();
-      }
-      if (url.pathname === '/refs' && req.method === 'GET') {
-        return handleRefs();
-      }
-      if (url.pathname === '/diff' && req.method === 'POST') {
-        return handleDiff(req);
-      }
-      return new Response('Not Found', { status: 404 });
-    }
+    fetch: handleApiRequest
   });
 }
 
 // If run directly, start server
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const server = createServer(3000);
+  createServer(3000);
   console.log(`Diffview API running on http://localhost:3000`);
 }

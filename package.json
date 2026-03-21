@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "dev": "bun run --bun apps/cli/src/index.ts",
-    "build": "bun run build:web && bun run build:api && bun run build:cli",
+    "build": "bun build src/index.ts --outfile dist/cli.js --minify --target=bun",
     "build:web": "bun --bun run -C apps/web build",
     "build:api": "bun --bun run -C apps/api build",
     "build:cli": "bun --bun run -C apps/cli build",
