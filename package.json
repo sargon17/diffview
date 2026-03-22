@@ -28,5 +28,6 @@
     "oxlint": "^1.56.0",
     "typescript": "^6.0.0-beta"
   },
-  "peerDependencies": {}
+  "peerDependencies": {},
+  "packageManager": "bun@1.2.15"
 }

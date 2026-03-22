@@ -2,12 +2,13 @@ import type { SessionInfo, DiffResult } from "@diffview/shared";
 import { fetchData } from "@utils/http";
 import { useEffect, useState } from "react";
 
+
 import Patch from "./components/Patch";
+import Header from "./components/Header";
 
 function App() {
   const [session, setSession] = useState<SessionInfo | null>(null);
   const [diff, setDiff] = useState<DiffResult | null>(null);
-  const [collapsed, setCollapsed] = useState<boolean>(false);
 
   const loadSession = async () => {
     try {
@@ -38,15 +39,24 @@ function App() {
 
   useEffect(() => {
     loadSession();
+  }, []);
+
+
+  useEffect(() => {
     loadDiff();
   }, []);
 
   return (
-    <div className="w-full h-full min-h-screen flex flex-col justify-center items-center dark:bg-neutral-900 dark:text-neutral-100">
+    <div className="w-full h-full min-h-screen dark:bg-neutral-900 dark:text-neutral-100">
+      <Header />
       <p>{session?.currentBranch}</p>
-      <div className="w-full" onClick={() => setCollapsed(!collapsed)}>
+      <div className="w-full">
         {diff?.files.map((file) => {
-          return <Patch patch={file.patch!} file={file.path} />;
+          if (!file.patch) {
+            return null;
+          }
+
+          return <Patch key={file.path} patch={file.patch} file={file.path} />;
         })}
       </div>
     </div>
