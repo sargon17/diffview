@@ -30,22 +30,22 @@ cd my-project
 diffview
 
 3. Tool bootstraps session
- • detects repo from cwd
- • resolves repo root
- • detects current branch
- • selects default base branch (main → fallback logic)
- • starts local backend
- • opens browser
+   • detects repo from cwd
+   • resolves repo root
+   • detects current branch
+   • selects default base branch (main → fallback logic)
+   • starts local backend
+   • opens browser
 
 ⸻
 
 4. UI opens automatically
 
 Initial state:
- • repo: my-project
- • current branch: feature/auth
- • base branch: main
- • mode: branch
+• repo: my-project
+• current branch: feature/auth
+• base branch: main
+• mode: branch
 
 You immediately see:
 
@@ -56,37 +56,37 @@ main → feature/auth diff
 5. User interacts in UI
 
 User can:
- • change base branch
- • switch diff mode (branch / working / staged)
- • filter files
- • toggle split/unified view
- • inspect file diffs
+• change base branch
+• switch diff mode (branch / working / staged)
+• filter files
+• toggle split/unified view
+• inspect file diffs
 
 ⸻
 
 🧠 Design Principles
 
 1. Git is the source of truth
- • no reimplementation of Git
- • always shell out to git
+   • no reimplementation of Git
+   • always shell out to git
 
 2. Thin architecture
- • minimal layers
- • no database
- • no auth
- • no background jobs
+   • minimal layers
+   • no database
+   • no auth
+   • no background jobs
 
 3. CLI-first UX
- • no repo picker UI
- • one repo per session
+   • no repo picker UI
+   • one repo per session
 
 4. Local-first
- • runs entirely on your machine
- • no network dependency
+   • runs entirely on your machine
+   • no network dependency
 
 5. Replaceable backend
- • backend is stateless and simple
- • can be swapped (Node → Rust later)
+   • backend is stateless and simple
+   • can be swapped (Node → Rust later)
 
 ⸻
 
@@ -96,20 +96,19 @@ System has 3 layers:
 
 CLI → API → Web UI
 
-
 ⸻
 
 1. CLI Layer
 
 Responsibilities
- • parse arguments
- • detect repo from cwd
- • validate Git repo
- • detect current branch
- • choose base branch
- • start backend
- • open browser
- • pass launch context
+• parse arguments
+• detect repo from cwd
+• validate Git repo
+• detect current branch
+• choose base branch
+• start backend
+• open browser
+• pass launch context
 
 Example
 
@@ -117,16 +116,15 @@ diffview
 diffview --base main
 diffview --staged
 
-
 ⸻
 
 2. Backend (API)
 
 Responsibilities
- • execute Git commands
- • parse Git output
- • normalize data
- • expose HTTP API
+• execute Git commands
+• parse Git output
+• normalize data
+• expose HTTP API
 
 Important rule
 
@@ -137,46 +135,45 @@ Backend is just a translator between UI and Git
 3. Web UI
 
 Responsibilities
- • render diff
- • manage UI state
- • handle user interactions
- • call API
+• render diff
+• manage UI state
+• handle user interactions
+• call API
 
 ⸻
 
 📦 Tech Stack
 
 Frontend
- • React
- • Vite
- • TypeScript
- • @pierre/diffs (diff renderer)
+• React
+• Vite
+• TypeScript
+• @pierre/diffs (diff renderer)
 
 Backend
- • Bun runtime
- • HTTP server
- • git via subprocess
+• Bun runtime
+• HTTP server
+• git via subprocess
 
 CLI
- • Bun / Node CLI
- • minimal argument parser
+• Bun / Node CLI
+• minimal argument parser
 
 Monorepo
- • Bun workspaces
+• Bun workspaces
 
 ⸻
 
 📁 Repo Structure
 
 diffview/
- apps/
- web/ # React + Vite UI
- api/ # Bun backend
- cli/ # CLI entrypoint
+apps/
+web/ # React + Vite UI
+api/ # Bun backend
+cli/ # CLI entrypoint
 
- packages/
- shared/ # shared types / DTOs
-
+packages/
+shared/ # shared types / DTOs
 
 ⸻
 
@@ -185,37 +182,35 @@ diffview/
 Backend
 
 routes/
- → HTTP layer
+→ HTTP layer
 
 services/
- → orchestrates logic
+→ orchestrates logic
 
 git/
- → executes git commands
+→ executes git commands
 
 parsers/
- → transforms git output
+→ transforms git output
 
 domain/
- → internal types
-
+→ internal types
 
 ⸻
 
 Frontend
 
 components/
- → UI
+→ UI
 
 features/
- → domain logic (diff, repo, compare)
+→ domain logic (diff, repo, compare)
 
 lib/api/
- → HTTP client
+→ HTTP client
 
 app/
- → layout and composition
-
+→ layout and composition
 
 ⸻
 
@@ -228,12 +223,11 @@ GET /session
 Returns:
 
 {
- repo: { path, name },
- currentBranch,
- defaultBaseRef,
- mode
+repo: { path, name },
+currentBranch,
+defaultBaseRef,
+mode
 }
-
 
 ⸻
 
@@ -242,8 +236,8 @@ Refs
 GET /refs
 
 Returns:
- • branches
- • (optional) remote branches
+• branches
+• (optional) remote branches
 
 ⸻
 
@@ -259,7 +253,6 @@ Examples:
 
 { mode: "staged" }
 
-
 ⸻
 
 🔍 Diff Modes
@@ -274,7 +267,6 @@ Example:
 
 main → feature/auth
 
-
 ⸻
 
 2. Working
@@ -282,7 +274,6 @@ main → feature/auth
 Compare:
 
 working tree → HEAD
-
 
 ⸻
 
@@ -292,7 +283,6 @@ Compare:
 
 index → HEAD
 
-
 ⸻
 
 📊 Data Model
@@ -300,33 +290,30 @@ index → HEAD
 ChangedFile
 
 type ChangedFile = {
- path: string;
- oldPath?: string;
- status: "added" | "modified" | "deleted" | "renamed";
- binary?: boolean;
+path: string;
+oldPath?: string;
+status: "added" | "modified" | "deleted" | "renamed";
+binary?: boolean;
 };
-
 
 ⸻
 
 DiffFile
 
 type DiffFile = {
- path: string;
- status: string;
- patch?: string;
+path: string;
+status: string;
+patch?: string;
 };
-
 
 ⸻
 
 DiffResult
 
 type DiffResult = {
- mode: "branch" | "working" | "staged";
- files: DiffFile[];
+mode: "branch" | "working" | "staged";
+files: DiffFile[];
 };
-
 
 ⸻
 
@@ -336,13 +323,11 @@ Repo detection
 
 git rev-parse --show-toplevel
 
-
 ⸻
 
 Current branch
 
 git branch --show-current
-
 
 ⸻
 
@@ -350,7 +335,6 @@ File list
 
 git diff --name-status
 git diff --cached --name-status
-
 
 ⸻
 
@@ -360,58 +344,57 @@ git diff --patch
 git diff --cached --patch
 git diff base..head --patch
 
-
 ⸻
 
 🎯 UI Layout
 
 Top Bar
- • repo name
- • current branch
- • base branch selector
- • mode selector
- • layout toggle
+• repo name
+• current branch
+• base branch selector
+• mode selector
+• layout toggle
 
 ⸻
 
 Sidebar
- • changed files
- • filter input
- • summary
+• changed files
+• filter input
+• summary
 
 ⸻
 
 Main Panel
- • diff viewer
- • file content
- • empty states
+• diff viewer
+• file content
+• empty states
 
 ⸻
 
 ⚡ Performance Strategy
- • render one file at a time
- • avoid rendering all diffs
- • lazy selection
- • optional large file guard
- • minimal parsing in v1
+• render one file at a time
+• avoid rendering all diffs
+• lazy selection
+• optional large file guard
+• minimal parsing in v1
 
 ⸻
 
 🔐 Safety
- • require absolute repo path
- • validate .git
- • no shell string interpolation
- • sanitize inputs
+• require absolute repo path
+• validate .git
+• no shell string interpolation
+• sanitize inputs
 
 ⸻
 
 🧪 Future Extensions
 
 Semantic Diff (via sem)
- • function-level changes
- • class-level changes
- • impact analysis
- • entity navigation
+• function-level changes
+• class-level changes
+• impact analysis
+• entity navigation
 
 CLI enhancements
 
@@ -420,52 +403,52 @@ diffview --port 4000
 diffview --editor zed
 
 UI enhancements
- • commit comparison
- • recent repos
- • keyboard navigation
+• commit comparison
+• recent repos
+• keyboard navigation
 
 ⸻
 
 🧭 Roadmap
 
 v1
- • CLI launch
- • repo detection
- • branch diff
- • working/staged modes
- • file list
- • diff rendering
+• CLI launch
+• repo detection
+• branch diff
+• working/staged modes
+• file list
+• diff rendering
 
 ⸻
 
 v1.1
- • file filtering
- • better branch selector
- • whitespace toggle
- • open in editor
+• file filtering
+• better branch selector
+• whitespace toggle
+• open in editor
 
 ⸻
 
 v2
- • semantic diff (sem)
- • impact analysis
- • advanced navigation
+• semantic diff (sem)
+• impact analysis
+• advanced navigation
 
 ⸻
 
 💡 Summary
 
 Diffview is:
- • CLI-first
- • local-first
- • Git-native
- • minimal by design
+• CLI-first
+• local-first
+• Git-native
+• minimal by design
 
 Architecture is intentionally simple:
 
 CLI → Backend → Git
- ↓
- Frontend → Diff Renderer
+↓
+Frontend → Diff Renderer
 
 No unnecessary layers.
 No overengineering.
@@ -474,5 +457,5 @@ Just a fast way to see your diffs.
 ⸻
 
 If you want next step, I can:
- • scaffold the repo with real package.json + scripts
- • or design the CLI implementation (bin, args, launch lifecycle) in code-level detail
+• scaffold the repo with real package.json + scripts
+• or design the CLI implementation (bin, args, launch lifecycle) in code-level detail

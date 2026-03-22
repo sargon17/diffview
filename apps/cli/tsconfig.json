@@ -7,8 +7,10 @@
     "noEmit": true,
     "strict": true,
     "skipLibCheck": true,
-    "baseUrl": ".",
+    "composite": true,
+    "types": ["bun", "node"],
     "paths": {
+      "*": ["./*"],
       "@diffview/shared": ["../packages/shared/src"]
     }
   },

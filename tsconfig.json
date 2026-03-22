@@ -9,9 +9,6 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "baseUrl": ".",
-    "paths": {
-      "@diffview/shared": ["packages/shared/src"]
-    }
+    "jsx": "react-jsx"
   }
 }

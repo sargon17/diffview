@@ -1,41 +1,39 @@
-import { type FC, type ComponentProps, useState } from 'react';
-
+import type { SelectedLineRange } from "@pierre/diffs";
 import { PatchDiff } from "@pierre/diffs/react";
-import type { SelectedLineRange } from '@pierre/diffs';
+import { type FC, type ComponentProps, useState } from "react";
 
 interface PatchProps extends ComponentProps<typeof PatchDiff> {
-  file: string
+  file: string;
 }
 
 const Patch: FC<PatchProps> = ({ patch, file }) => {
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(false);
 
   const handleSelection = (range: SelectedLineRange | null) => {
-    console.log("handle select", range)
-  }
+    console.log("handle select", range);
+  };
 
   return (
     <div>
-      <div className='bg-black p-1.5 px-2 text-sm text-neutral-300' onClick={() => setCollapsed(!collapsed)}>
+      <div
+        className="bg-black p-1.5 px-2 text-sm text-neutral-300"
+        onClick={() => setCollapsed(!collapsed)}
+      >
         {file}
       </div>
       <PatchDiff
         patch={patch}
-        options={
-          {
-            diffStyle: "split",
-            collapsed: collapsed,
-            enableLineSelection: true,
-            enableGutterUtility: true,
-            onLineSelectionEnd: handleSelection,
-            disableFileHeader: true,
+        options={{
+          diffStyle: "split",
+          collapsed: collapsed,
+          enableLineSelection: true,
+          enableGutterUtility: true,
+          onLineSelectionEnd: handleSelection,
+          disableFileHeader: true,
 
-            lineDiffType:'char',
-
-          }
-        }
+          lineDiffType: "char",
+        }}
       />
-
     </div>
   );
 };

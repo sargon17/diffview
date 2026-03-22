@@ -1,6 +1,7 @@
+import { SessionInfo, DiffMode } from "@diffview/shared";
+
 import { getRepoRoot, getCurrentBranch, getBranches } from "@/utils/git";
 import { json } from "@/utils/http";
-import { SessionInfo, DiffMode } from "@diffview/shared";
 
 export default async function handleSession(): Promise<Response> {
   try {
