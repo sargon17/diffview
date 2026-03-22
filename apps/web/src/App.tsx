@@ -5,10 +5,13 @@ import { useEffect, useState } from "react";
 
 import Patch from "./components/Patch";
 import Header from "./components/Header";
+import { useDiffModeStore } from "./store/diff-mode.store";
 
 function App() {
   const [session, setSession] = useState<SessionInfo | null>(null);
   const [diff, setDiff] = useState<DiffResult | null>(null);
+
+  const diffMode = useDiffModeStore((state) => state.current)
 
   const loadSession = async () => {
     try {
@@ -27,7 +30,7 @@ function App() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          mode: "working",
+          mode: diffMode,
         }),
       });
 
@@ -44,7 +47,7 @@ function App() {
 
   useEffect(() => {
     loadDiff();
-  }, []);
+  }, [diffMode]);
 
   return (
     <div className="w-full h-full min-h-screen dark:bg-neutral-900 dark:text-neutral-100">
