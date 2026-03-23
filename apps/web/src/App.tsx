@@ -7,6 +7,7 @@ import Header from "./components/Header";
 import Patch from "./components/Patch";
 import { fetchData } from "@utils/http";
 import { useDiffModeStore } from "./store/diff-mode.store";
+import { TreeView, type TreeDataItem } from "./components/ui/tree-view";
 
 type TreeNode = {
   name: string;
@@ -45,6 +46,14 @@ function buildTree(files: DiffFile[]): TreeNode[] {
   return sort(nodes);
 }
 
+function toTreeData(items: TreeNode[]): TreeDataItem[] {
+  return items.map((item) => ({
+    id: item.path,
+    name: item.name,
+    children: item.children.length ? toTreeData(item.children) : undefined,
+  }));
+}
+
 function App() {
   const { current: diffMode } = useDiffModeStore();
   const [session, setSession] = useState<SessionInfo | null>(null);
@@ -80,7 +89,7 @@ function App() {
     loadDiff();
   }, [diffMode, session, baseBranch]);
 
-  const tree = useMemo(() => buildTree(diff?.files ?? []), [diff]);
+  const tree = useMemo(() => toTreeData(buildTree(diff?.files ?? [])), [diff]);
 
   return (
     <div className="flex h-dvh min-h-screen flex-col bg-background text-foreground">
@@ -88,7 +97,7 @@ function App() {
       <div className="grid min-h-0 flex-1 grid-cols-[280px_minmax(0,1fr)] overflow-hidden">
         <aside className="min-h-0 overflow-y-auto border-r border-border bg-card/30 p-3">
           <div className="mb-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">Changed files</div>
-          <Tree nodes={tree} />
+          <TreeView data={tree} expandAll />
         </aside>
 
         <main className="min-h-0 overflow-hidden">
@@ -99,24 +108,6 @@ function App() {
           </Virtualizer>
         </main>
       </div>
-    </div>
-  );
-}
-
-function Tree({ nodes, depth = 0 }: { nodes: TreeNode[]; depth?: number }) {
-  return (
-    <div className="space-y-1">
-      {nodes.map((node) => (
-        <div key={node.path}>
-          <div
-            className="rounded-md px-2 py-1.5 text-sm hover:bg-muted"
-            style={{ paddingLeft: 8 + depth * 12 }}
-          >
-            {node.name}
-          </div>
-          {node.children.length > 0 ? <Tree nodes={node.children} depth={depth + 1} /> : null}
-        </div>
-      ))}
     </div>
   );
 }
