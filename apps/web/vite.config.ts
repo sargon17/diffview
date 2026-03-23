@@ -1,7 +1,6 @@
 import { fileURLToPath } from "node:url";
 
 import babel from "@rolldown/plugin-babel";
-import tailwindcss from "@tailwindcss/vite";
 import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
@@ -27,7 +26,7 @@ export default defineConfig({
   optimizeDeps: {
     include: ["react", "react-dom", "react/jsx-runtime"],
   },
-  plugins: [react(), babel({ presets: [reactCompilerPreset()] }), tailwindcss()],
+  plugins: [react(), babel({ presets: [reactCompilerPreset()] })],
   server: {
     fs: {
       allow: [rootDir],
