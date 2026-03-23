@@ -3,53 +3,9 @@ import { useEffect, useMemo, useState } from "react";
 import type { DiffFile, DiffMode, RefsResponse, SessionInfo } from "@diffview/shared";
 import { Button } from "./components/ui/button";
 import Patch from "./components/Patch";
-
-type TreeNode = {
-  name: string;
-  path: string;
-  children: TreeNode[];
-  file?: DiffFile;
-};
+import { TreeView } from "./components/ui/tree-view";
 
 const API_BASE = "";
-
-function buildTree(files: DiffFile[]) {
-  const root: TreeNode = { name: "", path: "", children: [] };
-  const map = new Map<string, TreeNode>([["", root]]);
-
-  for (const file of files) {
-    const parts = file.path.split("/");
-    let current = root;
-    let currentPath = "";
-
-    parts.forEach((part, index) => {
-      currentPath = currentPath ? `${currentPath}/${part}` : part;
-      let node = map.get(currentPath);
-
-      if (!node) {
-        node = { name: part, path: currentPath, children: [] };
-        map.set(currentPath, node);
-        current.children.push(node);
-      }
-
-      if (index === parts.length - 1) node.file = file;
-      else current = node;
-    });
-  }
-
-  const sortTree = (nodes: TreeNode[]) => {
-    nodes.sort((a, b) => {
-      const aFolder = a.children.length > 0;
-      const bFolder = b.children.length > 0;
-      if (aFolder !== bFolder) return aFolder ? -1 : 1;
-      return a.name.localeCompare(b.name);
-    });
-    nodes.forEach((node) => sortTree(node.children));
-    return nodes;
-  };
-
-  return sortTree(root.children);
-}
 
 function App() {
   const [session, setSession] = useState<SessionInfo | null>(null);
@@ -66,7 +22,6 @@ function App() {
     () => files.find((file) => file.path === selectedPath) ?? files[0] ?? null,
     [files, selectedPath],
   );
-  const tree = useMemo(() => buildTree(files), [files]);
 
   useEffect(() => {
     const load = async () => {
@@ -213,45 +168,9 @@ function App() {
 
         <aside className="min-h-0 overflow-auto border-l border-border bg-card/40 p-3">
           <div className="mb-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">Tree</div>
-          <TreeView nodes={tree} selectedPath={selectedPath} onSelect={selectFile} />
+          <TreeView files={files} selectedPath={selectedPath} onSelect={selectFile} />
         </aside>
       </main>
-    </div>
-  );
-}
-
-function TreeView({
-  nodes,
-  selectedPath,
-  onSelect,
-  depth = 0,
-}: {
-  nodes: TreeNode[];
-  selectedPath: string | null;
-  onSelect: (file: DiffFile) => void;
-  depth?: number;
-}) {
-  return (
-    <div className="space-y-1">
-      {nodes.map((node) => {
-        const isSelected = node.path === selectedPath;
-        const isFolder = node.children.length > 0;
-        return (
-          <div key={node.path}>
-            <button
-              onClick={() => node.file && onSelect(node.file)}
-              className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition ${
-                isSelected ? "bg-primary text-primary-foreground" : "hover:bg-muted"
-              }`}
-              style={{ paddingLeft: `${depth * 12 + 8}px` }}
-            >
-              <span className="w-4 text-xs text-muted-foreground">{isFolder ? "▾" : "•"}</span>
-              <span className="truncate">{node.name}</span>
-            </button>
-            {isFolder && <TreeView nodes={node.children} selectedPath={selectedPath} onSelect={onSelect} depth={depth + 1} />}
-          </div>
-        );
-      })}
     </div>
   );
 }
