@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { useDiffModeStore } from "src/store/diff-mode.store";
+import { useDiffMode } from "src/hooks/useDiffMode";
 
 type HeaderProps = {
   branches: string[];
@@ -24,7 +24,7 @@ const items = DIFF_MODES.map((mode) => ({
 }));
 
 const Header: FC<HeaderProps> = ({ branches, baseBranch, onBaseBranchChange }) => {
-  const { current, update } = useDiffModeStore();
+  const { current, update } = useDiffMode();
 
   return (
     <div className="flex w-full items-center justify-between border px-4 py-3">
