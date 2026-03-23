@@ -20,14 +20,13 @@ const items = DIFF_MODES.map((mode) => ({
 }));
 
 const Header: FC<HeaderProps> = () => {
-  const diffMode = useDiffModeStore((state) => state.current)
-  const setDiffMode = useDiffModeStore((state) => state.update)
+  const {current, update} = useDiffModeStore()
 
   return (
     <div className="flex w-full items-center justify-between border px-4 py-3">
       <Select
-        onValueChange={(value) => setDiffMode(value as DiffMode)}
-        defaultValue={diffMode}
+        onValueChange={(value) => update(value as DiffMode)}
+        defaultValue={current}
       >
         <SelectTrigger className="w-45">
           <SelectValue placeholder="Diff mode" />

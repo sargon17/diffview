@@ -2,10 +2,14 @@ import type { SessionInfo, DiffResult } from "@diffview/shared";
 import { fetchData } from "@utils/http";
 import { useEffect, useState } from "react";
 
+import {Virtualizer} from "@pierre/diffs/react"
+
 
 import Patch from "./components/Patch";
 import Header from "./components/Header";
 import { useDiffModeStore } from "./store/diff-mode.store";
+
+
 
 function App() {
   const [session, setSession] = useState<SessionInfo | null>(null);
@@ -14,17 +18,15 @@ function App() {
   const diffMode = useDiffModeStore((state) => state.current)
 
   const loadSession = async () => {
-    try {
-      const data = await fetchData<SessionInfo>(`/session`);
-      setSession(data);
-    } catch {
-      console.error("error");
-    }
+
+      const response = await fetchData<SessionInfo>(`/session`);
+
+      if (!response.ok) return
+      setSession(response.data);
   };
 
   const loadDiff = async () => {
-    try {
-      const data = await fetchData<DiffResult>(`/diff`, {
+      const response = await fetchData<DiffResult>(`/diff`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -34,26 +36,25 @@ function App() {
         }),
       });
 
-      setDiff(data);
-    } catch {
-      console.error("error");
-    }
+      if (!response.ok) return
+
+      setDiff(response.data);
   };
 
   useEffect(() => {
     loadSession();
-  }, []);
+  });
 
 
   useEffect(() => {
     loadDiff();
-  }, [diffMode]);
+  });
 
   return (
     <div className="w-full h-full min-h-screen dark:bg-neutral-900 dark:text-neutral-100">
       <Header />
       <p>{session?.currentBranch}</p>
-      <div className="w-full">
+      <Virtualizer className="w-full">
         {diff?.files.map((file) => {
           if (!file.patch) {
             return null;
@@ -61,7 +62,7 @@ function App() {
 
           return <Patch key={file.path} patch={file.patch} file={file.path} />;
         })}
-      </div>
+      </Virtualizer>
     </div>
   );
 }
