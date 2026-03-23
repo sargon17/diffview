@@ -19,18 +19,21 @@ export function useCookieState(
   const enabled = options?.enabled ?? true;
   const maxAgeSeconds = options?.maxAgeSeconds ?? 60 * 60 * 24 * 30;
   const [value, setValue] = useState(initialValue);
-  const hydratedRef = useRef(false);
+  const skipNextWriteRef = useRef(false);
 
   useEffect(() => {
-    hydratedRef.current = false;
     if (!enabled || !name) return;
     const cookie = getCookie(name);
+    skipNextWriteRef.current = true;
     setValue(cookie ?? initialValue);
-    hydratedRef.current = true;
   }, [name, enabled, initialValue]);
 
   useEffect(() => {
-    if (!enabled || !name || !hydratedRef.current) return;
+    if (!enabled || !name) return;
+    if (skipNextWriteRef.current) {
+      skipNextWriteRef.current = false;
+      return;
+    }
     setCookie(name, value, maxAgeSeconds);
   }, [name, value, enabled, maxAgeSeconds]);
 
