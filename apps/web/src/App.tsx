@@ -49,7 +49,13 @@ function App() {
     <div className="flex h-dvh min-h-screen flex-col bg-background text-foreground">
       <Header />
       <div className="grid min-h-0 flex-1 grid-cols-[280px_minmax(0,1fr)] overflow-hidden">
-        <DiffTreeSidebar files={diff?.files ?? []} />
+        <DiffTreeSidebar
+          files={diff?.files ?? []}
+          onSelectFile={(file) => {
+            const el = document.getElementById(`diff-file-${CSS.escape(file.path)}`);
+            el?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }}
+        />
 
         <main className="min-h-0 overflow-hidden">
           <Virtualizer className="h-full min-h-0 overflow-y-auto p-3">

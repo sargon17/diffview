@@ -14,6 +14,7 @@ export type TreeDataItem = {
 type TreeProps = {
   files: DiffFile[];
   className?: string;
+  onSelectFile: (file: DiffFile) => void;
 };
 
 type TreeNode = {
@@ -57,18 +58,18 @@ function buildTree(files: DiffFile[]): TreeNode[] {
   return sort(nodes);
 }
 
-export function TreeView({ files, className }: TreeProps) {
+export function TreeView({ files, className, onSelectFile }: TreeProps) {
   const tree = React.useMemo(() => buildTree(files), [files]);
   return (
     <div className={cn("space-y-1", className)}>
       {tree.map((item) => (
-        <TreeItem key={item.path} item={item} depth={0} />
+        <TreeItem key={item.path} item={item} depth={0} onSelectFile={onSelectFile} />
       ))}
     </div>
   );
 }
 
-function TreeItem({ item, depth }: { item: TreeNode; depth: number }) {
+function TreeItem({ item, depth, onSelectFile }: { item: TreeNode; depth: number; onSelectFile: (file: DiffFile) => void }) {
   const hasChildren = item.children.length > 0;
   const [open, setOpen] = React.useState(true);
 
@@ -76,7 +77,13 @@ function TreeItem({ item, depth }: { item: TreeNode; depth: number }) {
     <div>
       <button
         type="button"
-        onClick={() => (hasChildren ? setOpen((v) => !v) : undefined)}
+        onClick={() => {
+          if (hasChildren) {
+            setOpen((v) => !v);
+            return;
+          }
+          if (item.file) onSelectFile(item.file);
+        }}
         className={cn(
           "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted",
           item.file && "text-foreground",
@@ -98,7 +105,7 @@ function TreeItem({ item, depth }: { item: TreeNode; depth: number }) {
       {hasChildren && open ? (
         <div className="space-y-1">
           {item.children.map((child) => (
-            <TreeItem key={child.path} item={child} depth={depth + 1} />
+            <TreeItem key={child.path} item={child} depth={depth + 1} onSelectFile={onSelectFile} />
           ))}
         </div>
       ) : null}
