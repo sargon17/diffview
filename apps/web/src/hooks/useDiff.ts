@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import type { DiffRequest, DiffResult, DiffMode, SessionInfo } from "@diffview/shared";
+import type { DiffMode, DiffRequest, DiffResult, SessionInfo } from "@diffview/shared";
 import { fetchData } from "@utils/http";
 
 export function useDiff(mode: DiffMode, session: SessionInfo | null, baseBranch: string) {
@@ -8,6 +8,9 @@ export function useDiff(mode: DiffMode, session: SessionInfo | null, baseBranch:
 
   useEffect(() => {
     if (!session) return;
+
+    const controller = new AbortController();
+
     const load = async () => {
       const request: DiffRequest = { mode };
       if (mode === "branch") {
@@ -19,11 +22,15 @@ export function useDiff(mode: DiffMode, session: SessionInfo | null, baseBranch:
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(request),
+        signal: controller.signal,
       });
-      if (!response.ok) return;
+      if (!response.ok || controller.signal.aborted) return;
       setDiff(response.data);
     };
-    load();
+
+    load().catch(() => {});
+
+    return () => controller.abort();
   }, [mode, session, baseBranch]);
 
   return diff;
