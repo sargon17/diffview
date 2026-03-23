@@ -10,9 +10,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { useDiffMode } from "src/hooks/useDiffMode";
 
 type HeaderProps = {
+  diffMode: DiffMode;
+  onDiffModeChange: (value: DiffMode) => void;
   branches: string[];
   baseBranch: string;
   onBaseBranchChange: (value: string) => void;
@@ -23,13 +24,18 @@ const items = DIFF_MODES.map((mode) => ({
   label: mode.toUpperCase(),
 }));
 
-const Header: FC<HeaderProps> = ({ branches, baseBranch, onBaseBranchChange }) => {
-  const { current, update } = useDiffMode();
+const Header: FC<HeaderProps> = ({
+  diffMode,
+  onDiffModeChange,
+  branches,
+  baseBranch,
+  onBaseBranchChange,
+}) => {
 
   return (
     <div className="flex w-full items-center justify-between border px-4 py-3">
       <div className="flex items-center gap-2">
-        <Select onValueChange={(value) => update(value as DiffMode)} value={current}>
+        <Select onValueChange={(value) => onDiffModeChange(value as DiffMode)} value={diffMode}>
           <SelectTrigger className="w-45">
             <SelectValue placeholder="Diff mode" />
           </SelectTrigger>
@@ -44,7 +50,7 @@ const Header: FC<HeaderProps> = ({ branches, baseBranch, onBaseBranchChange }) =
           </SelectContent>
         </Select>
 
-        {current === "branch" ? (
+        {diffMode === "branch" ? (
           <Select
             onValueChange={onBaseBranchChange}
             value={baseBranch}

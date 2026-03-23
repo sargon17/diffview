@@ -10,7 +10,7 @@ import { useSession } from "./hooks/useSession";
 import { useCookieState } from "./hooks/useCookieState";
 
 function App() {
-  const { current: diffMode } = useDiffMode();
+  const { current: diffMode, update: setDiffMode } = useDiffMode();
   const session = useSession();
   const refs = useRefs();
   const baseBranchCookieKey = session ? `base-branch:${session.repo.name}` : "";
@@ -25,7 +25,13 @@ function App() {
 
   return (
     <div className="flex h-dvh min-h-screen flex-col bg-background text-foreground">
-      <Header branches={repoBranches} baseBranch={baseBranch} onBaseBranchChange={setBaseBranch} />
+      <Header
+        diffMode={diffMode}
+        onDiffModeChange={setDiffMode}
+        branches={repoBranches}
+        baseBranch={baseBranch}
+        onBaseBranchChange={setBaseBranch}
+      />
       <div className="grid min-h-0 flex-1 grid-cols-[280px_minmax(0,1fr)] overflow-hidden">
         <DiffTreeSidebar
           files={diff?.files ?? []}
