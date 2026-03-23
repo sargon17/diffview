@@ -1,4 +1,4 @@
-const API_BASE = "";
+const API_BASE = "http://localhost:3000";
 
 type Result<T> = { ok: true; data: T } | { ok: false; error: string };
 
