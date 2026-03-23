@@ -3,7 +3,7 @@ import { Virtualizer } from "@pierre/diffs/react";
 import Header from "./components/Header";
 import Patch from "./components/Patch";
 import DiffTreeSidebar from "./components/DiffTreeSidebar";
-import { DiffPageProvider, useDiffPage } from "./hooks/useDiffPage";
+import { DiffPageProvider, useDiffPage } from "./providers/DiffPageProvider";
 
 function AppShell() {
   const { diffMode, setDiffMode, baseBranch, setBaseBranch, repoBranches, diff } = useDiffPage();
@@ -29,7 +29,7 @@ function AppShell() {
 
         <main className="min-h-0 overflow-hidden">
           <Virtualizer className="h-full min-h-0 overflow-y-auto p-3">
-            {diff?.files.map((file) =>
+            {diff?.files.map((file: { path: string; patch?: string }) =>
               file.patch ? <Patch key={file.path} patch={file.patch} file={file.path} /> : null,
             )}
           </Virtualizer>

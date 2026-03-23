@@ -1,10 +1,10 @@
 import { createContext, useContext } from "react";
 
-import { useBaseBranch } from "./useBaseBranch";
-import { useDiff } from "./useDiff";
-import { useDiffMode } from "./useDiffMode";
-import { useRefs } from "./useRefs";
-import { useSession } from "./useSession";
+import { useBaseBranch } from "../hooks/useBaseBranch";
+import { useDiff } from "../hooks/useDiff";
+import { useDiffMode } from "../hooks/useDiffMode";
+import { useRefs } from "../hooks/useRefs";
+import { useSession } from "../hooks/useSession";
 
 type DiffPageState = {
   diffMode: ReturnType<typeof useDiffMode>["current"];
@@ -26,7 +26,9 @@ export function DiffPageProvider({ children }: { children: React.ReactNode }) {
   const [baseBranch, setBaseBranch] = useBaseBranch(session?.repo.name ?? "", session?.defaultBaseRef ?? "");
   const diff = useDiff(diffMode, session, baseBranch);
 
-  const repoBranches = refs?.branches.map((branch) => branch.name).filter((branch) => !branch.includes("->")) ?? [];
+  const repoBranches = refs?.branches
+    .map((branch: { name: string }) => branch.name)
+    .filter((branch: string) => !branch.includes("->")) ?? [];
 
   return (
     <DiffPageContext.Provider
