@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import type { DiffRequest, DiffResult, RefsResponse, SessionInfo } from "@diffview/shared";
 import { Virtualizer } from "@pierre/diffs/react";
@@ -8,7 +8,7 @@ import Patch from "./components/Patch";
 import DiffTreeSidebar from "./components/DiffTreeSidebar";
 import { fetchData } from "@utils/http";
 import { useDiffModeStore } from "./store/diff-mode.store";
-import { getCookie, useCookieState } from "./hooks/useCookieState";
+import { useCookieState } from "./hooks/useCookieState";
 
 function App() {
   const { current: diffMode } = useDiffModeStore();
@@ -16,11 +16,8 @@ function App() {
   const [refs, setRefs] = useState<RefsResponse | null>(null);
   const [diff, setDiff] = useState<DiffResult | null>(null);
 
-  const baseBranchCookieKey = useMemo(
-    () => (session ? `base-branch:${session.repo.name}` : ""),
-    [session],
-  );
-  const [baseBranch, setBaseBranch] = useCookieState(baseBranchCookieKey, "", {
+  const baseBranchCookieKey = session ? `base-branch:${session.repo.name}` : "";
+  const [baseBranch, setBaseBranch] = useCookieState(baseBranchCookieKey, session?.defaultBaseRef ?? "", {
     enabled: !!baseBranchCookieKey,
   });
 
@@ -43,18 +40,12 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (!session || !baseBranchCookieKey) return;
-    if (getCookie(baseBranchCookieKey) === null) {
-      setBaseBranch(session.defaultBaseRef);
-    }
-  }, [baseBranchCookieKey, session, setBaseBranch]);
-
-  useEffect(() => {
+    if (!session) return;
     const loadDiff = async () => {
       const request: DiffRequest = { mode: diffMode };
       if (diffMode === "branch") {
-        if (!session) return;
-        request.base = baseBranch || session.defaultBaseRef;
+        if (!baseBranch) return;
+        request.base = baseBranch;
         request.head = session.currentBranch;
       }
       const response = await fetchData<DiffResult>("/diff", {
@@ -72,11 +63,7 @@ function App() {
 
   return (
     <div className="flex h-dvh min-h-screen flex-col bg-background text-foreground">
-      <Header
-        branches={repoBranches}
-        baseBranch={baseBranch}
-        onBaseBranchChange={setBaseBranch}
-      />
+      <Header branches={repoBranches} baseBranch={baseBranch} onBaseBranchChange={setBaseBranch} />
       <div className="grid min-h-0 flex-1 grid-cols-[280px_minmax(0,1fr)] overflow-hidden">
         <DiffTreeSidebar
           files={diff?.files ?? []}

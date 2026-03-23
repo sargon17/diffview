@@ -29,28 +29,29 @@ const Header: FC<HeaderProps> = ({ branches, baseBranch, onBaseBranchChange }) =
   return (
     <div className="flex w-full items-center justify-between border px-4 py-3">
       <div className="flex items-center gap-2">
-        <Select
-          onValueChange={(value) => update(value as DiffMode)}
-          value={current}
-        >
-        <SelectTrigger className="w-45">
-          <SelectValue placeholder="Diff mode" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            {items.map((item) => (
-              <SelectItem key={item.value} value={item.value}>
-                {item.label}
-              </SelectItem>
-            ))}
-          </SelectGroup>
-        </SelectContent>
+        <Select onValueChange={(value) => update(value as DiffMode)} value={current}>
+          <SelectTrigger className="w-45">
+            <SelectValue placeholder="Diff mode" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {items.map((item) => (
+                <SelectItem key={item.value} value={item.value}>
+                  {item.label}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
         </Select>
 
         {current === "branch" ? (
-          <Select onValueChange={onBaseBranchChange} value={baseBranch}>
+          <Select
+            onValueChange={onBaseBranchChange}
+            value={baseBranch}
+            disabled={branches.length === 0}
+          >
             <SelectTrigger className="w-45">
-              <SelectValue placeholder="Base branch" />
+              <SelectValue placeholder={branches.length === 0 ? "Loading branches…" : "Base branch"} />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>

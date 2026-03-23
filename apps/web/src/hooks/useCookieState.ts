@@ -2,7 +2,10 @@ import { useEffect, useRef, useState } from "react";
 
 export function getCookie(name: string): string | null {
   if (typeof document === "undefined") return null;
-  const match = document.cookie.split("; ").find((row) => row.startsWith(`${name}=`));
+  const match = document.cookie.split("; ").find((row) => {
+    const [key] = row.split("=");
+    return key === name;
+  });
   return match ? decodeURIComponent(match.split("=").slice(1).join("=")) : null;
 }
 
