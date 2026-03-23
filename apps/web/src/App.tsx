@@ -7,7 +7,7 @@ import Header from "./components/Header";
 import Patch from "./components/Patch";
 import { fetchData } from "@utils/http";
 import { useDiffModeStore } from "./store/diff-mode.store";
-import { TreeView } from "./components/ui/tree-view";
+import DiffTreeSidebar from "./components/DiffTreeSidebar";
 
 function App() {
   const { current: diffMode } = useDiffModeStore();
@@ -49,10 +49,7 @@ function App() {
     <div className="flex h-dvh min-h-screen flex-col bg-background text-foreground">
       <Header />
       <div className="grid min-h-0 flex-1 grid-cols-[280px_minmax(0,1fr)] overflow-hidden">
-        <aside className="min-h-0 overflow-y-auto border-r border-border bg-card/30 p-3">
-          <div className="mb-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">Changed files</div>
-          <TreeView files={diff?.files ?? []} />
-        </aside>
+        <DiffTreeSidebar files={diff?.files ?? []} />
 
         <main className="min-h-0 overflow-hidden">
           <Virtualizer className="h-full min-h-0 overflow-y-auto p-3">
