@@ -51,6 +51,7 @@ function App() {
       <div className="grid min-h-0 flex-1 grid-cols-[280px_minmax(0,1fr)] overflow-hidden">
         <DiffTreeSidebar
           files={diff?.files ?? []}
+          isLoading={diff === null}
           onSelectFile={(file) => {
             const el = document.getElementById(`diff-file-${CSS.escape(file.path)}`);
             el?.scrollIntoView({ behavior: "smooth", block: "start" });
