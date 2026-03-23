@@ -85,16 +85,10 @@ function App() {
   return (
     <div className="flex h-dvh min-h-screen flex-col bg-background text-foreground">
       <Header />
-      <div className="grid min-h-0 flex-1 grid-cols-[280px_minmax(0,1fr)_300px] overflow-hidden">
+      <div className="grid min-h-0 flex-1 grid-cols-[280px_minmax(0,1fr)] overflow-hidden">
         <aside className="min-h-0 overflow-y-auto border-r border-border bg-card/30 p-3">
           <div className="mb-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">Changed files</div>
-          <div className="space-y-1">
-            {diff?.files.map((file) => (
-              <div key={file.path} className="rounded-md px-3 py-2 text-sm hover:bg-muted">
-                {file.path}
-              </div>
-            ))}
-          </div>
+          <Tree nodes={tree} />
         </aside>
 
         <main className="min-h-0 overflow-hidden">
@@ -104,11 +98,6 @@ function App() {
             )}
           </Virtualizer>
         </main>
-
-        <aside className="min-h-0 overflow-y-auto border-l border-border bg-card/30 p-3">
-          <div className="mb-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">Tree</div>
-          <Tree nodes={tree} />
-        </aside>
       </div>
     </div>
   );
@@ -119,7 +108,10 @@ function Tree({ nodes, depth = 0 }: { nodes: TreeNode[]; depth?: number }) {
     <div className="space-y-1">
       {nodes.map((node) => (
         <div key={node.path}>
-          <div className="rounded-md px-2 py-1.5 text-sm hover:bg-muted" style={{ paddingLeft: 8 + depth * 12 }}>
+          <div
+            className="rounded-md px-2 py-1.5 text-sm hover:bg-muted"
+            style={{ paddingLeft: 8 + depth * 12 }}
+          >
             {node.name}
           </div>
           {node.children.length > 0 ? <Tree nodes={node.children} depth={depth + 1} /> : null}
