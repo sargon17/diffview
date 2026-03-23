@@ -1,76 +1,71 @@
-import type { DiffRequest, DiffResult, SessionInfo } from "@diffview/shared";
-import { fetchData } from "@utils/http";
 import { useEffect, useState } from "react";
 
+import type { DiffRequest, DiffResult, SessionInfo } from "@diffview/shared";
 import { Virtualizer } from "@pierre/diffs/react";
 
-import Patch from "./components/Patch";
 import Header from "./components/Header";
+import Patch from "./components/Patch";
+import { fetchData } from "@utils/http";
 import { useDiffModeStore } from "./store/diff-mode.store";
+import DiffTreeSidebar from "./components/DiffTreeSidebar";
 
 function App() {
+  const { current: diffMode } = useDiffModeStore();
   const [session, setSession] = useState<SessionInfo | null>(null);
   const [diff, setDiff] = useState<DiffResult | null>(null);
-
-  const { current: diffMode } = useDiffModeStore();
-
-
+  const [baseBranch, setBaseBranch] = useState("");
 
   useEffect(() => {
-  const loadSession = async () => {
-    const response = await fetchData<SessionInfo>("/session");
-    if (!response.ok) {
-      return;
-    }
-
-    setSession(response.data);
-  };
+    const loadSession = async () => {
+      const response = await fetchData<SessionInfo>("/session");
+      if (!response.ok) return;
+      setSession(response.data);
+      setBaseBranch(response.data.defaultBaseRef);
+    };
     loadSession();
   }, []);
 
   useEffect(() => {
-  const loadDiff = async () => {
-    const request: DiffRequest = { mode: diffMode };
-
-    if (diffMode === "branch") {
-      if (!session) {
-        return;
+    const loadDiff = async () => {
+      const request: DiffRequest = { mode: diffMode };
+      if (diffMode === "branch") {
+        if (!session) return;
+        request.base = baseBranch || session.defaultBaseRef;
+        request.head = session.currentBranch;
       }
-
-      request.base = session.defaultBaseRef;
-      request.head = session.currentBranch;
-    }
-
-    const response = await fetchData<DiffResult>("/diff", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(request),
-    });
-
-    if (!response.ok) {
-      return;
-    }
-
-    setDiff(response.data);
-  };
+      const response = await fetchData<DiffResult>("/diff", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(request),
+      });
+      if (!response.ok) return;
+      setDiff(response.data);
+    };
     loadDiff();
-  }, [diffMode, session]);
+  }, [diffMode, session, baseBranch]);
+
 
   return (
-    <div className="w-full h-full min-h-screen dark:bg-neutral-900 dark:text-neutral-100">
+    <div className="flex h-dvh min-h-screen flex-col bg-background text-foreground">
       <Header />
-      <p>{session?.currentBranch}</p>
-      <Virtualizer className="w-full">
-        {diff?.files.map((file) => {
-          if (!file.patch) {
-            return null;
-          }
+      <div className="grid min-h-0 flex-1 grid-cols-[280px_minmax(0,1fr)] overflow-hidden">
+        <DiffTreeSidebar
+          files={diff?.files ?? []}
+          isLoading={diff === null}
+          onSelectFile={(file) => {
+            const el = document.getElementById(`diff-file-${CSS.escape(file.path)}`);
+            el?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }}
+        />
 
-          return <Patch key={file.path} patch={file.patch} file={file.path} />;
-        })}
-      </Virtualizer>
+        <main className="min-h-0 overflow-hidden">
+          <Virtualizer className="h-full min-h-0 overflow-y-auto p-3">
+            {diff?.files.map((file) =>
+              file.patch ? <Patch key={file.path} patch={file.patch} file={file.path} /> : null,
+            )}
+          </Virtualizer>
+        </main>
+      </div>
     </div>
   );
 }

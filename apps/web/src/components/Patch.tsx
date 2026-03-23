@@ -14,7 +14,7 @@ const Patch: FC<PatchProps> = ({ patch, file }) => {
   };
 
   return (
-    <div>
+    <div id={`diff-file-${CSS.escape(file)}`}>
       <div
         className="bg-black p-1.5 px-2 text-sm text-neutral-300"
         onClick={() => setCollapsed(!collapsed)}
