@@ -1,7 +1,7 @@
 import { BranchRef, DiffFile, DiffMode } from "@diffview/shared";
 import { spawn } from "bun";
 
-async function execGit(args: string[]): Promise<string> {
+async function execGit(args: string[], allowExitCodes: number[] = [0]): Promise<string> {
   const proc = spawn(["git", ...args], {
     cwd: process.cwd(),
     stdout: "pipe",
@@ -11,7 +11,7 @@ async function execGit(args: string[]): Promise<string> {
   const stderr = proc.stderr ? await new Response(proc.stderr).text() : "";
   const exitCode = await proc.exited;
 
-  if (exitCode !== 0) {
+  if (!allowExitCodes.includes(exitCode)) {
     throw new Error(`git ${args.join(" ")}: ${stderr.trim()}`);
   }
   return stdout?.trim() ?? "";
@@ -27,42 +27,33 @@ export async function getCurrentBranch(): Promise<string> {
 
 export async function getBranches(): Promise<BranchRef[]> {
   const local = await execGit(["branch", "--list"]);
-  const branches = local
-    .split("\n")
-    .filter(Boolean)
-    .map((name) => ({
-      name: name.trim().replace(/^[* ]+/, ""),
-      isRemote: false,
-    }));
-
+  const branches = local.split("\n").filter(Boolean).map((name) => ({ name: name.trim().replace(/^[* ]+/, ""), isRemote: false }));
   try {
     const remote = await execGit(["branch", "-r", "--list"]);
-    remote
-      .split("\n")
-      .filter(Boolean)
-      .forEach((line) => {
-        const name = line.trim();
-        if (name) {
-          branches.push({ name, isRemote: true });
-        }
-      });
-  } catch {
-    // remotes not available, ignore
-  }
-
+    remote.split("\n").filter(Boolean).forEach((line) => {
+      const name = line.trim();
+      if (name) branches.push({ name, isRemote: true });
+    });
+  } catch {}
   return branches;
 }
 
-export async function getDiffFiles(
-  mode: DiffMode,
-  base?: string,
-  head?: string,
-): Promise<string[]> {
+async function getUntrackedFiles(): Promise<string[]> {
+  const output = await execGit(["status", "--porcelain=v1", "--untracked-files=all"]);
+  return output
+    .split("\n")
+    .filter((line) => line.startsWith("?? "))
+    .map((line) => line.slice(3));
+}
+
+export async function getDiffFiles(mode: DiffMode, base?: string, head?: string): Promise<string[]> {
   let args = ["diff", "--name-status"];
   if (mode === "staged") {
     args.push("--cached");
   } else if (mode === "working") {
-    // working mode: compare HEAD to working tree
+    const tracked = await execGit(args);
+    const untracked = await getUntrackedFiles();
+    return [...tracked.split("\n").filter(Boolean), ...untracked.map((file) => `A\t${file}`)];
   } else if (mode === "branch" && base && head) {
     args.push(`${base}..${head}`);
   }
@@ -70,16 +61,30 @@ export async function getDiffFiles(
   return output.split("\n").filter(Boolean);
 }
 
-export async function getDiffPatches(
-  mode: DiffMode,
-  base?: string,
-  head?: string,
-): Promise<string> {
+async function getUntrackedPatch(file: string): Promise<string> {
+  const content = await Bun.file(file).text();
+  const lines = content.split("\n");
+  const body = lines.map((line) => `+${line}`).join("\n");
+  const lineCount = lines[lines.length - 1] === "" ? lines.length - 1 : lines.length;
+  return [
+    `diff --git a/${file} b/${file}`,
+    `new file mode 100644`,
+    `--- /dev/null`,
+    `+++ b/${file}`,
+    `@@ -0,0 +1,${lineCount} @@`,
+    body,
+  ].join("\n");
+}
+
+export async function getDiffPatches(mode: DiffMode, base?: string, head?: string): Promise<string> {
   let args = ["diff", "--patch"];
   if (mode === "staged") {
     args.push("--cached");
   } else if (mode === "working") {
-    // HEAD vs working tree
+    const trackedPatch = await execGit(args);
+    const untracked = await getUntrackedFiles();
+    const untrackedPatches = await Promise.all(untracked.map((file) => getUntrackedPatch(file)));
+    return [trackedPatch, ...untrackedPatches].filter(Boolean).join("\n");
   } else if (mode === "branch" && base && head) {
     args.push(`${base}..${head}`);
   }
@@ -89,32 +94,17 @@ export async function getDiffPatches(
 export function parseDiffFiles(rawList: string[]): DiffFile[] {
   return rawList.map((line) => {
     const parts = line.split("\t");
+    const statusCode = parts[0];
     if (parts.length === 2) {
       return {
         path: parts[1],
-        status:
-          parts[0] === "A"
-            ? "added"
-            : parts[0] === "M"
-              ? "modified"
-              : parts[0] === "D"
-                ? "deleted"
-                : parts[0] === "R"
-                  ? "renamed"
-                  : "modified",
-        oldPath: parts[0] === "R" ? parts[0] : undefined,
+        status: statusCode === "A" || statusCode === "??" ? "added" : statusCode === "M" ? "modified" : statusCode === "D" ? "deleted" : statusCode === "R" ? "renamed" : "modified",
+        oldPath: statusCode === "R" ? parts[1] : undefined,
       };
     }
     return {
       path: parts[0],
-      status:
-        parts[0] === "A"
-          ? "added"
-          : parts[0] === "M"
-            ? "modified"
-            : parts[0] === "D"
-              ? "deleted"
-              : "modified",
+      status: statusCode === "A" || statusCode === "??" ? "added" : statusCode === "M" ? "modified" : statusCode === "D" ? "deleted" : "modified",
     };
   });
 }
@@ -124,25 +114,11 @@ export function splitPatchByFile(patch: string): Map<string, string> {
   const lines = patch.split("\n");
   let currentFile = "";
   let currentPatch: string[] = [];
-
-  const flush = () => {
-    if (currentFile) {
-      files.set(currentFile, currentPatch.join("\n"));
-    }
-  };
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
+  const flush = () => { if (currentFile) files.set(currentFile, currentPatch.join("\n")); };
+  for (const line of lines) {
     const fileMatch = line.match(/^diff --git a\/(.+?) b\/(.+?)$/);
-    if (fileMatch) {
-      flush();
-      currentFile = fileMatch[2];
-      currentPatch = [line];
-    } else {
-      currentPatch.push(line);
-    }
+    if (fileMatch) { flush(); currentFile = fileMatch[2]; currentPatch = [line]; } else { currentPatch.push(line); }
   }
   flush();
-
   return files;
 }
