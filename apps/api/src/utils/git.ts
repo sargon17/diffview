@@ -62,18 +62,23 @@ export async function getDiffFiles(mode: DiffMode, base?: string, head?: string)
 }
 
 async function getUntrackedPatch(file: string): Promise<string> {
-  const content = await Bun.file(file).text();
-  const lines = content.split("\n");
-  const body = lines.map((line) => `+${line}`).join("\n");
-  const lineCount = lines[lines.length - 1] === "" ? lines.length - 1 : lines.length;
-  return [
-    `diff --git a/${file} b/${file}`,
-    `new file mode 100644`,
-    `--- /dev/null`,
-    `+++ b/${file}`,
-    `@@ -0,0 +1,${lineCount} @@`,
-    body,
-  ].join("\n");
+  try {
+    const content = await Bun.file(file).text();
+    const lines = content.split("\n");
+    const bodyLines = lines[lines.length - 1] === "" ? lines.slice(0, -1) : lines;
+    const body = bodyLines.map((line) => `+${line}`).join("\n");
+    const lineCount = bodyLines.length;
+    return [
+      `diff --git a/${file} b/${file}`,
+      `new file mode 100644`,
+      `--- /dev/null`,
+      `+++ b/${file}`,
+      `@@ -0,0 +1,${lineCount} @@`,
+      body,
+    ].join("\n");
+  } catch {
+    return "";
+  }
 }
 
 export async function getDiffPatches(mode: DiffMode, base?: string, head?: string): Promise<string> {
@@ -95,16 +100,26 @@ export function parseDiffFiles(rawList: string[]): DiffFile[] {
   return rawList.map((line) => {
     const parts = line.split("\t");
     const statusCode = parts[0];
+    const status = statusCode === "A" || statusCode === "??" ? "added" : statusCode === "M" ? "modified" : statusCode === "D" ? "deleted" : statusCode.startsWith("R") ? "renamed" : "modified";
+
+    if (parts.length === 3) {
+      return {
+        path: parts[2],
+        oldPath: parts[1],
+        status,
+      };
+    }
+
     if (parts.length === 2) {
       return {
         path: parts[1],
-        status: statusCode === "A" || statusCode === "??" ? "added" : statusCode === "M" ? "modified" : statusCode === "D" ? "deleted" : statusCode === "R" ? "renamed" : "modified",
-        oldPath: statusCode === "R" ? parts[1] : undefined,
+        status,
       };
     }
+
     return {
       path: parts[0],
-      status: statusCode === "A" || statusCode === "??" ? "added" : statusCode === "M" ? "modified" : statusCode === "D" ? "deleted" : "modified",
+      status,
     };
   });
 }
