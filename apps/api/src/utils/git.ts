@@ -27,14 +27,22 @@ export async function getCurrentBranch(): Promise<string> {
 
 export async function getBranches(): Promise<BranchRef[]> {
   const local = await execGit(["branch", "--list"]);
-  const branches = local.split("\n").filter(Boolean).map((name) => ({ name: name.trim().replace(/^[* ]+/, ""), isRemote: false }));
+  const branches = local
+    .split("\n")
+    .filter(Boolean)
+    .map((name) => ({ name: name.trim().replace(/^[* ]+/, ""), isRemote: false }));
   try {
     const remote = await execGit(["branch", "-r", "--list"]);
-    remote.split("\n").filter(Boolean).forEach((line) => {
-      const name = line.trim();
-      if (name) branches.push({ name, isRemote: true });
-    });
-  } catch {}
+    remote
+      .split("\n")
+      .filter(Boolean)
+      .forEach((line) => {
+        const name = line.trim();
+        if (name) branches.push({ name, isRemote: true });
+      });
+  } catch {
+    // ignore missing remotes
+  }
   return branches;
 }
 
@@ -46,7 +54,11 @@ async function getUntrackedFiles(): Promise<string[]> {
     .map((line) => line.slice(3));
 }
 
-export async function getDiffFiles(mode: DiffMode, base?: string, head?: string): Promise<string[]> {
+export async function getDiffFiles(
+  mode: DiffMode,
+  base?: string,
+  head?: string,
+): Promise<string[]> {
   let args = ["diff", "--name-status"];
   if (mode === "staged") {
     args.push("--cached");
@@ -81,7 +93,11 @@ async function getUntrackedPatch(file: string): Promise<string> {
   }
 }
 
-export async function getDiffPatches(mode: DiffMode, base?: string, head?: string): Promise<string> {
+export async function getDiffPatches(
+  mode: DiffMode,
+  base?: string,
+  head?: string,
+): Promise<string> {
   let args = ["diff", "--patch"];
   if (mode === "staged") {
     args.push("--cached");
@@ -100,7 +116,16 @@ export function parseDiffFiles(rawList: string[]): DiffFile[] {
   return rawList.map((line) => {
     const parts = line.split("\t");
     const statusCode = parts[0];
-    const status = statusCode === "A" || statusCode === "??" ? "added" : statusCode === "M" ? "modified" : statusCode === "D" ? "deleted" : statusCode.startsWith("R") ? "renamed" : "modified";
+    const status =
+      statusCode === "A" || statusCode === "??"
+        ? "added"
+        : statusCode === "M"
+          ? "modified"
+          : statusCode === "D"
+            ? "deleted"
+            : statusCode.startsWith("R")
+              ? "renamed"
+              : "modified";
 
     if (parts.length === 3) {
       return {
@@ -129,10 +154,18 @@ export function splitPatchByFile(patch: string): Map<string, string> {
   const lines = patch.split("\n");
   let currentFile = "";
   let currentPatch: string[] = [];
-  const flush = () => { if (currentFile) files.set(currentFile, currentPatch.join("\n")); };
+  const flush = () => {
+    if (currentFile) files.set(currentFile, currentPatch.join("\n"));
+  };
   for (const line of lines) {
     const fileMatch = line.match(/^diff --git a\/(.+?) b\/(.+?)$/);
-    if (fileMatch) { flush(); currentFile = fileMatch[2]; currentPatch = [line]; } else { currentPatch.push(line); }
+    if (fileMatch) {
+      flush();
+      currentFile = fileMatch[2];
+      currentPatch = [line];
+    } else {
+      currentPatch.push(line);
+    }
   }
   flush();
   return files;
