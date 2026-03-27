@@ -75,19 +75,7 @@ export async function getDiffFiles(
 
 async function getUntrackedPatch(file: string): Promise<string> {
   try {
-    const content = await Bun.file(file).text();
-    const lines = content.split("\n");
-    const bodyLines = lines[lines.length - 1] === "" ? lines.slice(0, -1) : lines;
-    const body = bodyLines.map((line) => `+${line}`).join("\n");
-    const lineCount = bodyLines.length;
-    return [
-      `diff --git a/${file} b/${file}`,
-      `new file mode 100644`,
-      `--- /dev/null`,
-      `+++ b/${file}`,
-      `@@ -0,0 +1,${lineCount} @@`,
-      body,
-    ].join("\n");
+    return await execGit(["diff", "--no-index", "--binary", "--", "/dev/null", file], [0, 1]);
   } catch {
     return "";
   }
