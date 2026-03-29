@@ -1,7 +1,6 @@
 import { DiffFile, DiffMode } from "@diffview/shared";
 
-import { parseDiffFiles } from "@/utils/diff-files";
-import { getDiffFiles, getDiffPatches, splitPatchByFile } from "@/utils/git";
+import { getDiffFiles, parseDiffFiles, getDiffPatches, splitPatchByFile } from "@/utils/git";
 import { json } from "@/utils/http";
 
 export default async function handleDiff(request: Request): Promise<Response> {
