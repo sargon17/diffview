@@ -7,3 +7,6 @@ dist/
 coverage/
 .vscode/
 .idea/
+
+# local/generated noise
+**/*.tsbuildinfo
