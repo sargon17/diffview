@@ -9,6 +9,7 @@ export interface ChangedFile {
 
 export interface DiffFile {
   path: string;
+  oldPath?: string;
   status: string;
   patch?: string;
 }
