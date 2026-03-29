@@ -1,19 +1,17 @@
 import { DiffFile } from "@diffview/shared";
 
+function getDiffStatus(statusCode: string): DiffFile["status"] {
+  if (statusCode === "A" || statusCode === "??") return "added";
+  if (statusCode === "M") return "modified";
+  if (statusCode === "D") return "deleted";
+  if (statusCode.startsWith("R")) return "renamed";
+  return "modified";
+}
+
 export function parseDiffFiles(rawList: string[]): DiffFile[] {
   return rawList.map((line) => {
     const parts = line.split("\t");
-    const statusCode = parts[0];
-    const status =
-      statusCode === "A" || statusCode === "??"
-        ? "added"
-        : statusCode === "M"
-          ? "modified"
-          : statusCode === "D"
-            ? "deleted"
-            : statusCode.startsWith("R")
-              ? "renamed"
-              : "modified";
+    const status = getDiffStatus(parts[0]);
 
     if (parts.length === 3) {
       return {
