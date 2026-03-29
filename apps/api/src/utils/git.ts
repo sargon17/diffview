@@ -1,4 +1,4 @@
-import { BranchRef, DiffFile, DiffMode } from "@diffview/shared";
+import { BranchRef, DiffMode } from "@diffview/shared";
 import { spawn } from "bun";
 
 async function execGit(args: string[], allowExitCodes: number[] = [0]): Promise<string> {
@@ -99,43 +99,6 @@ export async function getDiffPatches(
     args.push(`${base}..${head}`);
   }
   return execGit(args);
-}
-
-export function parseDiffFiles(rawList: string[]): DiffFile[] {
-  return rawList.map((line) => {
-    const parts = line.split("\t");
-    const statusCode = parts[0];
-    const status =
-      statusCode === "A" || statusCode === "??"
-        ? "added"
-        : statusCode === "M"
-          ? "modified"
-          : statusCode === "D"
-            ? "deleted"
-            : statusCode.startsWith("R")
-              ? "renamed"
-              : "modified";
-
-    if (parts.length === 3) {
-      return {
-        path: parts[2],
-        oldPath: parts[1],
-        status,
-      };
-    }
-
-    if (parts.length === 2) {
-      return {
-        path: parts[1],
-        status,
-      };
-    }
-
-    return {
-      path: parts[0],
-      status,
-    };
-  });
 }
 
 export function splitPatchByFile(patch: string): Map<string, string> {
