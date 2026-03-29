@@ -47,11 +47,12 @@ export async function getBranches(): Promise<BranchRef[]> {
 }
 
 async function getUntrackedFiles(): Promise<string[]> {
-  const output = await execGit(["status", "--porcelain=v1", "--untracked-files=all"]);
+  const output = await execGit(["status", "--porcelain=v1", "--untracked-files=all", "-z"]);
   return output
-    .split("\n")
+    .split("\0")
     .filter((line) => line.startsWith("?? "))
-    .map((line) => line.slice(3));
+    .map((line) => line.slice(3))
+    .filter(Boolean);
 }
 
 export async function getDiffFiles(
